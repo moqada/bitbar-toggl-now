@@ -14,7 +14,7 @@ A [BitBar](https://getbitbar.com/) plugin for watching [Toggl](https://www.toggl
 
 ```
 $ git clone https://github.com/moqada/bitbar-toggl-now
-$ ln -s /path/to/bitbar-toggl-now/toggl-now.10s.js
+$ ln -s /path/to/bitbar-toggl-now/toggl-now.10s.js /path/to/bitbar-plugin-dir/
 $ mkdir -p ~/.config/bitbar-toggl-now
 $ echo <YOUR_TOGGL_API_TOKEN> > ~/.config/bitbar-toggl-now/api_token
 ```
