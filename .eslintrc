@@ -1,0 +1,7 @@
+extends:
+  - moqada
+  - moqada/cli
+rules:
+  no-magic-numbers: 0
+  no-var: 0
+  init-declarations: 0
