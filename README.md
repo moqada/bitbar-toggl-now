@@ -8,7 +8,7 @@
 
 A [BitBar](https://getbitbar.com/) plugin for watching [Toggl](https://www.toggl.com/) current time entry.
 
-![](https://i.gyazo.com/85dde3c63a9b22f6024ccb3026688722.png)
+![](https://i.gyazo.com/308f0b6a955c1c5d85847a4a20e09d6a.png)
 
 ## Installation
 
