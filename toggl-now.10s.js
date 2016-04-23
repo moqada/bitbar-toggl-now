@@ -14,6 +14,7 @@ var fs = require('fs');
 var https = require('https');
 
 var CONFIG_FILE_PATH = `${process.env.HOME}/.config/bitbar-toggl-now/api_token`;
+var scriptPath = process.argv[1];
 
 /**
  * @param {number} num - number
@@ -61,10 +62,20 @@ function head(data) {
  * @return {string}
  */
 function menu(data) {
+  var outputs = [];
+  var icons = {
+    start: String.fromCodePoint(0x25b6),
+    stop: String.fromCodePoint(0x25fc)
+  };
   if (data === null) {
-    return 'Timer is not Tracking';
+    outputs.push('Timer is not Tracking');
+  } else {
+    outputs.push(`${data.description || '(No description)'}`);
   }
-  return `${data.description || '(No description)'}`;
+  outputs.push('---');
+  outputs.push(`${icons.start} Start Timer | terminal=false bash=${scriptPath} param1=start`);
+  outputs.push(`${icons.stop} Stop Timer | terminal=false bash=${scriptPath} param1=stop`);
+  return outputs.join('\n');
 }
 
 /**
@@ -75,15 +86,18 @@ function loadApiToken() {
 }
 
 /**
- * @return {Promise<string, Error>}
+ * @param {string} method - method
+ * @param {string} path - path
+ * @param {Object} postData - post data
+ * @return {Promise<Object, Error>}
  */
-function exec() {
+function request(method, path, postData) {
   return new Promise((resolve, reject) => {
     var apiToken = loadApiToken();
     var req = https.request({
       hostname: 'www.toggl.com',
-      path: '/api/v8/time_entries/current',
-      method: 'GET',
+      path,
+      method,
       headers: {
         Authorization: `Basic ${new Buffer(`${apiToken}:api_token`).toString('base64')}`
       }
@@ -92,25 +106,96 @@ function exec() {
       res.setEncoding('utf8');
       res.on('data', chunk => (data += chunk));
       res.on('end', () => {
-        var entry;
         if (res.statusCode !== 200) {
-          return reject(res.statusMessage);
+          return reject(res);
         }
-        entry = JSON.parse(data).data;
-        if (!entry) {
-          return resolve(format(null));
-        }
-        if (entry.duration > 0) {
-          return resolve(format(null));
-        }
-        return resolve(format({
-          description: entry.description,
-          duration: Date.now() + entry.duration * 1000
-        }));
+        return resolve({
+          json: JSON.parse(data),
+          response: res
+        });
       });
     });
     req.on('error', err => reject(err));
+    if (postData) {
+      req.write(JSON.stringify(postData));
+    }
     req.end();
+  });
+}
+
+/**
+ * @return {Promise<Object, Error>}
+ */
+function userMe() {
+  return request('GET', '/api/v8/me').then(res => {
+    return res.json.data;
+  });
+}
+
+/**
+ * @return {Promise<Object|null, Error>}
+ */
+function stop() {
+  return current().then(entry => {
+    if (!entry) {
+      return null;
+    }
+    return request('PUT', `/api/v8/time_entries/${entry.id}/stop`);
+  });
+}
+
+/**
+ * @return {Promise<Object, Error>}
+ */
+function start() {
+  return userMe().then(user => {
+    return user.default_wid;
+  }).then(wid => {
+    return request('POST', '/api/v8/time_entries/start', {
+      time_entry: {
+        wid,
+        created_with: 'bitbar-toggl-now'
+      }
+    });
+  });
+}
+
+/**
+ * @return {Promise<null|Object, Error>}
+ */
+function current() {
+  return request('GET', '/api/v8/time_entries/current').then(res => {
+    var entry = res.json.data;
+    if (!entry) {
+      return null;
+    }
+    return entry;
+  });
+}
+
+/**
+ * @return {Promise<string, Error>}
+ */
+function exec() {
+  var args = process.argv.slice(2);
+  var cmd = args.length > 0 ? args[0] : null;
+  var promise = Promise.resolve();
+  if (cmd === 'stop') {
+    promise = stop();
+  } else if (cmd === 'start') {
+    promise = start();
+  }
+  return promise.then(current).then(entry => {
+    if (!entry) {
+      return format(null);
+    }
+    if (entry.duration > 0) {
+      return format(null);
+    }
+    return format({
+      description: entry.description,
+      duration: Date.now() + entry.duration * 1000
+    });
   });
 }
 
