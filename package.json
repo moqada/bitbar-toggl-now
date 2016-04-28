@@ -6,7 +6,7 @@
   "bin": "toggl-now.10s.js",
   "devDependencies": {
     "eslint": "^2.8.0",
-    "eslint-config-moqada": "^14.0.0",
+    "eslint-config-moqada": "^15.0.0",
     "eslint-plugin-node": "^1.0.0"
   },
   "license": "MIT",
