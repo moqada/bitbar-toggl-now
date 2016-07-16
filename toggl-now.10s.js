@@ -98,9 +98,7 @@ function request(method, path, postData) {
       hostname: 'www.toggl.com',
       path,
       method,
-      headers: {
-        Authorization: `Basic ${new Buffer(`${apiToken}:api_token`).toString('base64')}`
-      }
+      headers: {Authorization: `Basic ${Buffer.from(`${apiToken}:api_token`).toString('base64')}`}
     }, res => {
       var data = '';
       res.setEncoding('utf8');
