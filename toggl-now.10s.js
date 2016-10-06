@@ -95,10 +95,10 @@ function request(method, path, postData) {
   return new Promise((resolve, reject) => {
     var apiToken = loadApiToken();
     var req = https.request({
+      headers: {Authorization: `Basic ${Buffer.from(`${apiToken}:api_token`).toString('base64')}`},
       hostname: 'www.toggl.com',
-      path,
       method,
-      headers: {Authorization: `Basic ${Buffer.from(`${apiToken}:api_token`).toString('base64')}`}
+      path
     }, res => {
       var data = '';
       res.setEncoding('utf8');
@@ -151,8 +151,8 @@ function start() {
   }).then(wid => {
     return request('POST', '/api/v8/time_entries/start', {
       time_entry: {
-        wid,
-        created_with: 'bitbar-toggl-now'
+        created_with: 'bitbar-toggl-now',
+        wid
       }
     });
   });
