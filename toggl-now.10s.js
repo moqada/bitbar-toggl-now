@@ -82,7 +82,7 @@ function menu(data) {
  * @return {string}
  */
 function loadApiToken() {
-  return fs.readFileSync(CONFIG_FILE_PATH, {encoding: 'utf8'});
+  return fs.readFileSync(CONFIG_FILE_PATH, {encoding: 'utf8'}).trim();
 }
 
 /**
